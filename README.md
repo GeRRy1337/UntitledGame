@@ -1,1 +1,1 @@
-2d game using [wavefunction collapse](github.com/gerry1337/mapgenerator) map generator
+2d game using [wavefunction collapse](https://github.com/GeRRy1337/MapGenerator) map generator
