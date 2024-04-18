@@ -16,7 +16,7 @@ public class Generator {
     static Stack<int[]> changed = new Stack<>();
     static final ArrayList<Tiles> values = new ArrayList<>(List.of(Tiles.values()));
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         for (int i = 0; i < 50; i++) {
             for (int j = 0; j < 50; j++) {
                 tileMatrix[i][j] = new Tile();
@@ -25,8 +25,20 @@ public class Generator {
 
         while (waveFunctionCollapse());
         printEntropy();
-    }
+    }*/
 
+    public static Tile[][] run(){
+        for (int i = 0; i < 50; i++) {
+            for (int j = 0; j < 50; j++) {
+                tileMatrix[i][j] = new Tile();
+            }
+        }
+
+        while (waveFunctionCollapse());
+        
+        return tileMatrix;
+    }
+    
     public static void printMatrix() {
         for (Tile[] row : tileMatrix) {
             for (Tile tile : row) {
@@ -55,7 +67,6 @@ public class Generator {
         int rand = random.nextInt(lowestEntropies.size());
         int[] coords = lowestEntropies.get(rand);
 
-        //int sumWeight = tileMatrix[coords[1]][coords[0]].goodTiles.stream().map(element -> element.weight).reduce(0, (acc, e) -> acc + e);
         Tile currTile = tileMatrix[coords[1]][coords[0]];
         ArrayList<Tiles> currGoods = currTile.goodTiles;
 
@@ -80,48 +91,36 @@ public class Generator {
             int[] pair = stack.pop();
 
             //top
-            Thread th = new Thread(()-> {
-                int[] currNeighbour = new int[]{pair[0], pair[1] - 1};
-                boolean updated = updateEntropy(currNeighbour[0], currNeighbour[1]);
-                if (updated) {
-                    stack.add(currNeighbour);
-                    changed.add(currNeighbour);
-                }
-            });
-            th.start();
+            int[] currNeighbour = new int[]{pair[0], pair[1] - 1};
+            boolean updated = updateEntropy(currNeighbour[0], currNeighbour[1]);
+            if (updated) {
+                stack.add(currNeighbour);
+                changed.add(currNeighbour);
+            }
             
             //bottom
-            th = new Thread(() -> {
-                int[] currNeighbour = new int[]{pair[0], pair[1] + 1};
-                boolean updated = updateEntropy(currNeighbour[0], currNeighbour[1]);
-                if (updated) {
-                    stack.add(currNeighbour);
-                    changed.add(currNeighbour);
-                }
-            });
-            th.start();
+            currNeighbour = new int[]{pair[0], pair[1] + 1};
+            updated = updateEntropy(currNeighbour[0], currNeighbour[1]);
+            if (updated) {
+                stack.add(currNeighbour);
+                changed.add(currNeighbour);
+            }
 
             //left
-            th = new Thread(() -> {
-                int[] currNeighbour = new int[]{pair[0] - 1, pair[1]};
-                boolean updated = updateEntropy(currNeighbour[0], currNeighbour[1]);
-                if (updated) {
-                    stack.add(currNeighbour);
-                    changed.add(currNeighbour);
-                }
-            });
-            th.start();
-            
+            currNeighbour = new int[]{pair[0] - 1, pair[1]};
+            updated = updateEntropy(currNeighbour[0], currNeighbour[1]);
+            if (updated) {
+                stack.add(currNeighbour);
+                changed.add(currNeighbour);
+            }
+
             //right
-            th = new Thread(() -> {
-                int[] currNeighbour = new int[]{pair[0] + 1, pair[1]};
-                boolean updated = updateEntropy(currNeighbour[0], currNeighbour[1]);
-                if (updated) {
-                    stack.add(currNeighbour);
-                    changed.add(currNeighbour);
-                }
-            });
-            th.start();
+            currNeighbour = new int[]{pair[0] + 1, pair[1]};
+            updated = updateEntropy(currNeighbour[0], currNeighbour[1]);
+            if (updated) {
+                stack.add(currNeighbour);
+                changed.add(currNeighbour);
+            }
         }
 
         return true;
@@ -237,82 +236,6 @@ public class Generator {
         
         return goodTiles;
     }
-    
-    /*
-    private static ArrayList<Tiles> getGoodTiles(int i, int j) {
-
-        HashSet<Tiles> topTiles = new HashSet<>();
-        HashSet<Tiles> bottomTiles = new HashSet<>();
-        HashSet<Tiles> leftTiles = new HashSet<>();
-        HashSet<Tiles> rightTiles = new HashSet<>();
-        
-        int x = i;
-        int y = j - 1;
-        //top
-        if (inBounds(x, y)) {
-            if (tileMatrix[y][x].tile == null) {
-                for (Tiles tiles : tileMatrix[y][x].goodTiles) {
-                    topTiles.addAll(searchConnecting("top", tiles.bottom));
-                }
-            } else {
-                topTiles.addAll(searchConnecting("top", tileMatrix[y][x].tile.bottom));
-            }
-        }
-
-        //bottom
-        y = j + 1;
-        if (inBounds(x, y)) {
-            if (tileMatrix[y][x].tile == null) {
-                for (Tiles tiles : tileMatrix[y][x].goodTiles) {
-                    bottomTiles.addAll(searchConnecting("bottom", tiles.top));
-                }
-            } else {
-                bottomTiles.addAll(searchConnecting("bottom", tileMatrix[y][x].tile.top));
-            }
-        }
-
-        //left
-        y = j;
-        x = i - 1;
-        if (inBounds(x, y)) {
-            if (tileMatrix[y][x].tile == null) {
-                for (Tiles tiles : tileMatrix[y][x].goodTiles) {
-                    leftTiles.addAll(searchConnecting("left", tiles.right));
-                }
-            } else {
-                leftTiles.addAll(searchConnecting("left", tileMatrix[y][x].tile.right));
-            }
-        }
-
-        //right
-        x = i + 1;
-
-        if (inBounds(x, y)) {
-            if (tileMatrix[y][x].tile == null) {
-                for (Tiles tiles : tileMatrix[y][x].goodTiles) {
-                    rightTiles.addAll(searchConnecting("right", tiles.left));
-                }
-            } else {
-                rightTiles.addAll(searchConnecting("right", tileMatrix[y][x].tile.left));
-            }
-        }
-
-        ArrayList<Tiles> goodTiles = new ArrayList<>(values);
-        if (!topTiles.isEmpty()) {
-            goodTiles.retainAll(topTiles);
-        }
-        if (!bottomTiles.isEmpty()) {
-            goodTiles.retainAll(bottomTiles);
-        }
-        if (!leftTiles.isEmpty()) {
-            goodTiles.retainAll(leftTiles);
-        }
-        if (!rightTiles.isEmpty()) {
-            goodTiles.retainAll(rightTiles);
-        }
-        return goodTiles;
-    }
-    */
 
     static ArrayList<Tiles> searchConnecting(String side, TileType tt) {
         ArrayList<Tiles> connecting = new ArrayList<>();
@@ -325,8 +248,4 @@ public class Generator {
 
         return connecting;
     }
-    /*
-    private static ArrayList<Tiles> searchConnecting(String side, TileType tt) {
-        return new ArrayList<>(values.stream().filter(tile -> tile.getSide(side).equals(tt)).toList());
-    }*/
 }
